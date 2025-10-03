@@ -145,10 +145,4 @@ The project differentiates between 3 levels of contributors:
 
 - Documentation is a community effort
 - When you need to look into the source code to figure out how to use an API consider adding a short summary to the header file for future reference
-- When you notice incorrect or outdated documentation, please update it
-
-# Resources
-
-The Github issues, PRs and discussions contain a lot of information that can be useful to get familiar with the codebase. For convenience, some of the more important information is referenced from Github projects:
-
-https://github.com/ggml-org/llama.cpp/projects
+- When you notice incorrect or outdated documentation, plea

@@ -267,8 +267,4 @@ install(
     DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 configure_file(cmake/llama.pc.in
-        "${CMAKE_CURRENT_BINARY_DIR}/llama.pc"
-        @ONLY)
-
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/llama.pc"
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
+        "${CMAKE_CURRENT_BINARY_

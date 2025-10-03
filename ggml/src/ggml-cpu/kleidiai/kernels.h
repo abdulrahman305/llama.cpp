@@ -84,11 +84,8 @@ struct rhs_packing_info {
 
 struct ggml_kleidiai_kernels {
     kernel_info gemm;
-    lhs_packing_info gemm_lhs_info;
-
     kernel_info gemv;
-    lhs_packing_info gemv_lhs_info;
-
+    lhs_packing_info lhs_info;
     rhs_packing_info rhs_info;
 
     cpu_feature required_cpu;

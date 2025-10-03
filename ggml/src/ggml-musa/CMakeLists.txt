@@ -56,7 +56,7 @@ if (MUSAToolkit_FOUND)
 
     set_source_files_properties(${GGML_SOURCES_MUSA} PROPERTIES LANGUAGE CXX)
     foreach(SOURCE ${GGML_SOURCES_MUSA})
-        set(COMPILE_FLAGS "-Od3 -fno-strict-aliasing -ffast-math -fsigned-char -x musa -mtgpu -fmusa-flush-denormals-to-zero")
+        set(COMPILE_FLAGS "-fsigned-char -x musa -mtgpu")
         foreach(ARCH ${MUSA_ARCHITECTURES})
             set(COMPILE_FLAGS "${COMPILE_FLAGS} --cuda-gpu-arch=mp_${ARCH}")
         endforeach()
@@ -94,6 +94,10 @@ if (MUSAToolkit_FOUND)
 
     if (NOT GGML_CUDA_FA)
         add_compile_definitions(GGML_CUDA_NO_FA)
+    endif()
+
+    if (GGML_CUDA_F16 OR GGML_CUDA_DMMV_F16)
+        add_compile_definitions(GGML_CUDA_F16)
     endif()
 
     if (GGML_CUDA_NO_PEER_COPY)

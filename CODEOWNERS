@@ -75,41 +75,4 @@
 /ggml/src/ggml.cpp                      @ggerganov @slaren
 /ggml/src/gguf.cpp                      @JohannesGaessler @Green-Sky
 /gguf-py/                               @CISC
-/media/                                 @ggerganov
-/scripts/gen*                           @ggerganov
-/scripts/get*                           @ggerganov
-/scripts/sync*                          @ggerganov
-/src/                                   @ggerganov
-/src/llama-adapter.*                    @CISC
-/src/llama-arch.*                       @CISC
-/src/llama-chat.*                       @ngxson
-/src/llama-graph.*                      @CISC
-/src/llama-model-loader.*               @slaren
-/src/llama-model.*                      @CISC
-/src/llama-vocab.*                      @CISC
-/tests/                                 @ggerganov
-/tests/test-backend-ops.cpp             @slaren
-/tests/test-thread-safety.cpp           @slaren
-/tools/batched-bench/                   @ggerganov
-/tools/llama-bench/                     @slaren
-/tools/main/                            @ggerganov
-/tools/mtmd/                            @ngxson
-/tools/perplexity/                      @ggerganov
-/tools/quantize/                        @ggerganov
-/tools/rpc/                             @rgerganov
-/tools/run/                             @ericcurtin
-/tools/server/*                         @ngxson @ggerganov @ericcurtin # no subdir
-/tools/server/webui/                    @allozaur
-/tools/tokenize/                        @ggerganov
-/tools/tts/                             @ggerganov
-/vendor/                                @ggerganov
-/.clang-format                          @slaren
-/.clang-tidy                            @slaren
-/AUTHORS                                @ggerganov
-/CMakeLists.txt                         @ggerganov
-/CONTRIBUTING.md                        @ggerganov
-/LICENSE                                @ggerganov
-/README.md                              @ggerganov
-/SECURITY.md                            @ggerganov
-/build-xcframework.sh                   @danbev
-requirements*.txt                       @CISC
+/media/                                 @g
