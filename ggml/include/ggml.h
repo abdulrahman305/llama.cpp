@@ -237,8 +237,6 @@
 #define GGML_EXIT_SUCCESS 0
 #define GGML_EXIT_ABORTED 1
 
-// TODO: convert to enum https://github.com/ggml-org/llama.cpp/pull/16187#discussion_r2388538726
-#define GGML_ROPE_TYPE_NORMAL 0
 #define GGML_ROPE_TYPE_NEOX   2
 #define GGML_ROPE_TYPE_MROPE  8
 #define GGML_ROPE_TYPE_VISION 24
@@ -246,13 +244,6 @@
 #define GGML_MROPE_SECTIONS   4
 
 #define GGML_UNUSED(x) (void)(x)
-#ifdef __CUDACC__
-template<typename... Args>
-__host__ __device__ constexpr inline void ggml_unused_vars_impl(Args&&...) noexcept {}
-#define GGML_UNUSED_VARS(...) ggml_unused_vars_impl(__VA_ARGS__)
-#else
-#define GGML_UNUSED_VARS(...) do { (void)sizeof((__VA_ARGS__, 0)); } while(0)
-#endif // __CUDACC__
 
 #define GGML_PAD(x, n) (((x) + (n) - 1) & ~((n) - 1))
 
@@ -286,19 +277,19 @@ __host__ __device__ constexpr inline void ggml_unused_vars_impl(Args&&...) noexc
 //    GGML_TENSOR_LOCALS(size_t,  nb1, src1, nb);
 //
 #define GGML_TENSOR_LOCALS_1(type, prefix, pointer, array) \
-    const type prefix##0 = (pointer) ? (pointer)->array[0] : 0; \
+    const type prefix##0 = (pointer)->array[0]; \
     GGML_UNUSED(prefix##0);
 #define GGML_TENSOR_LOCALS_2(type, prefix, pointer, array) \
     GGML_TENSOR_LOCALS_1    (type, prefix, pointer, array) \
-    const type prefix##1 = (pointer) ? (pointer)->array[1] : 0; \
+    const type prefix##1 = (pointer)->array[1]; \
     GGML_UNUSED(prefix##1);
 #define GGML_TENSOR_LOCALS_3(type, prefix, pointer, array) \
     GGML_TENSOR_LOCALS_2    (type, prefix, pointer, array) \
-    const type prefix##2 = (pointer) ? (pointer)->array[2] : 0; \
+    const type prefix##2 = (pointer)->array[2]; \
     GGML_UNUSED(prefix##2);
 #define GGML_TENSOR_LOCALS(type, prefix, pointer, array) \
     GGML_TENSOR_LOCALS_3  (type, prefix, pointer, array) \
-    const type prefix##3 = (pointer) ? (pointer)->array[3] : 0; \
+    const type prefix##3 = (pointer)->array[3]; \
     GGML_UNUSED(prefix##3);
 
 #define GGML_TENSOR_UNARY_OP_LOCALS \
@@ -513,9 +504,7 @@ extern "C" {
         GGML_OP_CONV_TRANSPOSE_1D,
         GGML_OP_IM2COL,
         GGML_OP_IM2COL_BACK,
-        GGML_OP_IM2COL_3D,
         GGML_OP_CONV_2D,
-        GGML_OP_CONV_3D,
         GGML_OP_CONV_2D_DW,
         GGML_OP_CONV_TRANSPOSE_2D,
         GGML_OP_POOL_1D,
@@ -576,7 +565,6 @@ extern "C" {
         GGML_UNARY_OP_HARDSIGMOID,
         GGML_UNARY_OP_EXP,
         GGML_UNARY_OP_GELU_ERF,
-        GGML_UNARY_OP_XIELU,
 
         GGML_UNARY_OP_COUNT,
     };
@@ -1151,18 +1139,6 @@ extern "C" {
             struct ggml_context * ctx,
             struct ggml_tensor  * a);
 
-    // xIELU activation function
-    // x = x * (c_a(alpha_n) + c_b(alpha_p, beta) * sigmoid(beta * x)) + eps * (x > 0)
-    // where c_a = softplus and c_b(a, b) = softplus(a) + b are constraining functions
-    // that constrain the positive and negative source alpha values respectively
-    GGML_API struct ggml_tensor * ggml_xielu(
-            struct ggml_context * ctx,
-            struct ggml_tensor  * a,
-            float alpha_n,
-            float alpha_p,
-            float beta,
-            float eps);
-
     // gated linear unit ops
     // A: n columns, r rows,
     // result is n / 2 columns, r rows,
@@ -1419,7 +1395,6 @@ extern "C" {
             struct ggml_tensor  * a,
             struct ggml_tensor  * b);
 
-    // note: casting from f32 to i32 will discard the fractional part
     GGML_API struct ggml_tensor * ggml_cast(
             struct ggml_context * ctx,
             struct ggml_tensor  * a,
@@ -1544,11 +1519,7 @@ extern "C" {
             struct ggml_context * ctx,
             struct ggml_tensor  * a);
 
-    // supports 4D a:
-    // a     [n_embd, ne1, ne2, ne3]
-    // b I32 [n_rows, ne2, ne3, 1]
-    //
-    // return [n_embd, n_rows, ne2, ne3]
+    // supports 3D: a->ne[2] == b->ne[1]
     GGML_API struct ggml_tensor * ggml_get_rows(
             struct ggml_context * ctx,
             struct ggml_tensor  * a,  // data
@@ -1624,13 +1595,6 @@ extern "C" {
     // fused soft_max(a*scale + mask*(ALiBi slope))
     // max_bias = 0.0f for no ALiBi
     GGML_API struct ggml_tensor * ggml_soft_max_ext(
-            struct ggml_context * ctx,
-            struct ggml_tensor  * a,
-            struct ggml_tensor  * mask,
-            float                 scale,
-            float                 max_bias);
-
-    GGML_API struct ggml_tensor * ggml_soft_max_ext_inplace(
             struct ggml_context * ctx,
             struct ggml_tensor  * a,
             struct ggml_tensor  * mask,
@@ -1898,41 +1862,6 @@ extern "C" {
             int                   d0,  // dilation dimension 0
             int                   d1); // dilation dimension 1
 
-    GGML_API struct ggml_tensor * ggml_im2col_3d(
-            struct ggml_context * ctx,
-            struct ggml_tensor  * a,
-            struct ggml_tensor  * b,
-            int64_t               IC,
-            int                   s0, // stride width
-            int                   s1, // stride height
-            int                   s2, // stride depth
-            int                   p0, // padding width
-            int                   p1, // padding height
-            int                   p2, // padding depth
-            int                   d0, // dilation width
-            int                   d1, // dilation height
-            int                   d2, // dilation depth
-            enum ggml_type        dst_type);
-
-    // a: [OC*IC, KD, KH, KW]
-    // b: [N*IC, ID, IH, IW]
-    // result: [N*OC, OD, OH, OW]
-    GGML_API struct ggml_tensor * ggml_conv_3d(
-                struct ggml_context * ctx,
-                struct ggml_tensor  * a,
-                struct ggml_tensor  * b,
-                int64_t               IC,
-                int                   s0, // stride width
-                int                   s1, // stride height
-                int                   s2, // stride depth
-                int                   p0, // padding width
-                int                   p1, // padding height
-                int                   p2, // padding depth
-                int                   d0, // dilation width
-                int                   d1, // dilation height
-                int                   d2  // dilation depth
-        );
-
     // kernel size is a->ne[0] x a->ne[1]
     // stride is equal to kernel size
     // padding is zero
@@ -2003,23 +1932,6 @@ extern "C" {
             int                   p1,  // padding dimension 1
             int                   d0,  // dilation dimension 0
             int                   d1); // dilation dimension 1
-
-    GGML_API struct ggml_tensor * ggml_conv_3d_direct(
-            struct ggml_context * ctx,
-            struct ggml_tensor  * a,   // kernel [KW, KH, KD, IC * OC]
-            struct ggml_tensor  * b,   // input  [W, H, D, C * N]
-            int                   s0,  // stride
-            int                   s1,
-            int                   s2,
-            int                   p0,  // padding
-            int                   p1,
-            int                   p2,
-            int                   d0,  // dilation
-            int                   d1,
-            int                   d2,
-            int                   n_channels,
-            int                   n_batch,
-            int                   n_channels_out);
 
     enum ggml_op_pool {
         GGML_OP_POOL_MAX,
@@ -2110,19 +2022,6 @@ extern "C" {
             int                  p1,
             int                  p2,
             int                  p3);
-
-    GGML_API struct ggml_tensor * ggml_pad_ext(
-            struct ggml_context * ctx,
-            struct ggml_tensor  * a,
-            int                  lp0,
-            int                  rp0,
-            int                  lp1,
-            int                  rp1,
-            int                  lp2,
-            int                  rp2,
-            int                  lp3,
-            int                  rp3
-            );
 
     // pad each dimension with reflection: [a, b, c, d] -> [b, a, b, c, d, c]
     GGML_API struct ggml_tensor * ggml_pad_reflect_1d(
